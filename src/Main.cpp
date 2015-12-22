@@ -25,18 +25,21 @@ int main(int argc, const char *argv[]) {
 	return 0;*/
 
 	string dataset_dir = "./train/"; // argv[1];
+	Mat featuresUnclustered;
 
-	Mat featuresUnclustered_cats;
-	/* CATS */
 	// read, detect and extract all features and descriptors from the set
+	String animal = "cat";
 	for (int i = 0; i < 12500; i++){
-		Mat img = imread(String(dataset_dir+"cat."+i+".jpg"), IMREAD_GRAYSCALE);
+		Mat img = imread(String(dataset_dir + animal + "." + i + ".jpg"), IMREAD_GRAYSCALE);
 
-		vector<Keypoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
+		vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 		Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
-		featuresUnclustered_cats.push_back(descriptors);
+		featuresUnclustered.push_back(descriptors);
 	}
+
+	Mat dictionary = BagOfWords::create(featuresUnclustered);
+	BagOfWords::save(dictionary, "dictionary.yml");
 
 	return 0;
 }

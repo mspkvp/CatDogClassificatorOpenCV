@@ -1,4 +1,4 @@
-#define DICTIONARY_BUILD 1 // set DICTIONARY_BUILD to 1 for Step 1. 0 for step 2
+/*#define DICTIONARY_BUILD 1 // set DICTIONARY_BUILD to 1 for Step 1. 0 for step 2
 
 #include <vector>
 #include "opencv2/core.hpp"
@@ -110,4 +110,4 @@ fs1 << imageTag << bowDescriptor;
 
 //release the file storage
 fs1.release();
-#endif   
+#endif   */

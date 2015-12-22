@@ -13,9 +13,10 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-class SurfDetector {
+class SurfExtractor {
 public:
-	static vector<KeyPoint> ExtractKeyPoints(Mat img, int HessianThreshold);
+	static vector<KeyPoint> ExtractKeyPoints(Mat img, int hessianThreshold);
+	static Mat ExtractDescriptors(Mat img, vector<KeyPoint> keypoints, int hessianThreshold);
 };
 
 class SiftExtractor {
@@ -23,4 +24,10 @@ public:
 	static vector<KeyPoint> ExtractKeyPoints(Mat img);
 	static Mat ExtractDescriptors(Mat img, vector<KeyPoint> keypoints);
 
+};
+
+class BagOfWords {
+public:
+	static Mat create(Mat features);
+	static void save(Mat dictionary, String fileName);
 };
