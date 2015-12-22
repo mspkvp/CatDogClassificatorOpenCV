@@ -17,3 +17,10 @@ class SurfDetector {
 public:
 	static vector<KeyPoint> ExtractKeyPoints(Mat img, int HessianThreshold);
 };
+
+class SiftExtractor {
+public:
+	static vector<KeyPoint> ExtractKeyPoints(Mat img);
+	static Mat ExtractDescriptors(Mat img, vector<KeyPoint> keypoints);
+
+};
