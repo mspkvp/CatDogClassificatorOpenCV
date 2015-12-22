@@ -24,22 +24,23 @@ int main(int argc, const char *argv[]) {
 	// Testing SURF end #############################################
 	return 0;*/
 
-	string dataset_dir = "./train/"; // argv[1];
+	string dataset_dir = "./imgs/train/"; // argv[1];
 	Mat featuresUnclustered;
 
 	// read, detect and extract all features and descriptors from the set
 	String animal = "cat";
-	for (int i = 0; i < 12500; i++){
+	int animalCount = 12500;
+	for (int i = 0; i < animalCount; i+=250){
 		Mat img = imread(String(dataset_dir + animal + "." + i + ".jpg"), IMREAD_GRAYSCALE);
-
 		vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 		Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
 		featuresUnclustered.push_back(descriptors);
+		cout << "Processed " << i << "/" << animalCount << "\n";
 	}
-
+	// save descriptors as bag of words
 	Mat dictionary = BagOfWords::create(featuresUnclustered);
-	BagOfWords::save(dictionary, "dictionary.yml");
+	BagOfWords::saveToFile(dictionary, animal + ".yml");
 
 	return 0;
 }

@@ -47,9 +47,7 @@ Mat BagOfWords::create(Mat features) {
 	return bowTrainer.cluster(features);
 }
 
-void BagOfWords::save(Mat dictionary, String fileName) {
-	
-	//store the vocabulary
+void BagOfWords::saveToFile(Mat dictionary, String fileName) {
 	FileStorage fs(fileName, FileStorage::WRITE);
 	fs << "vocabulary" << dictionary;
 	fs.release();

@@ -29,5 +29,10 @@ public:
 class BagOfWords {
 public:
 	static Mat create(Mat features);
-	static void save(Mat dictionary, String fileName);
+	static void saveToFile(Mat dictionary, String fileName);
+};
+
+class Matcher {
+public:
+
 };
