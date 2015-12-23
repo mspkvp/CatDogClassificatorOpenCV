@@ -130,9 +130,10 @@ int main(int argc, const char *argv[]) {
 	}
 
 	cout << "#### Testing !" << endl;
+	int positive_hits = 0, false_positives = 0, total = 0;
 	String test_set_dir = "./test1/";
-	for (int i = 1; i < animalCount; i += 50) {
-		cout << animal + "." + to_string(i) + ".jpg" << endl;
+	for (int i = 1; i < animalCount; i += 250) {
+		cout << "\t" << animal + "." + to_string(i) + ".jpg" << endl;
 		Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 		vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 		Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
@@ -141,11 +142,21 @@ int main(int argc, const char *argv[]) {
 
 		for (map<string, Ptr<ml::SVM>>::iterator it = classes_classifiers.begin(); it != classes_classifiers.end(); ++it) {
 			float res = (*it).second->predict(response_hist);
-			cout << "class: " << (*it).first << ", response: " << res << endl;
+			cout << "\t\tclass: " << (*it).first << ", response: " << res << endl;
+			if ((*it).first == animal && res > 0)
+				positive_hits++;
+			else if ((*it).first != animal && res > 0)
+				false_positives++;
 		}
+		total++;
 
 		cout << "\tProcessed " << i << "/" << animalCount << "\n";
 	}
 
+	cout << "### Stats:\n" << "\tPositive Hits: " << positive_hits << " -> " << positive_hits / total << endl
+		<< "\t False-Pos Hits: " << false_positives << " -> " << false_positives / total << endl
+		<< "\t Total Tests: " << total << endl;
+
+	system("PAUSE");
 	return 0;
 }
