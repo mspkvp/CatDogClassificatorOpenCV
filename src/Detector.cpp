@@ -35,20 +35,28 @@ Mat SiftExtractor::ExtractDescriptors(Mat img, vector<KeyPoint> keypoints) {
 	return descriptors;
 }
 
-Mat BagOfWords::create(Mat features) {
-	int dictionarySize = 200; // the number of bags
-	TermCriteria tc(CV_TERMCRIT_ITER, 100, 0.001); // define Term Criteria
+Ptr<SiftDescriptorExtractor> SiftExtractor::create()
+{
+	return new SiftDescriptorExtractor();
+}
+
+BOWKMeansTrainer BagOfWords::create(Mat descriptors, int dict_size) {
+	int dictionarySize = dict_size; // the number of bags
+	TermCriteria tc(CV_TERMCRIT_ITER, 5000, 0.001); // define Term Criteria
 	int retries = 1; // retries number
 	int flags = KMEANS_PP_CENTERS; // necessary flags
 
 	// create the BoW (or BoF) trainer
 	BOWKMeansTrainer bowTrainer(dictionarySize, tc, retries, flags);
-	//cluster the feature vectors
-	return bowTrainer.cluster(features);
+	return bowTrainer;
 }
 
 void BagOfWords::saveToFile(Mat dictionary, String fileName) {
 	FileStorage fs(fileName, FileStorage::WRITE);
 	fs << "vocabulary" << dictionary;
 	fs.release();
+}
+
+Ptr<DescriptorMatcher> Matcher::create() {
+	return new FlannBasedMatcher();
 }

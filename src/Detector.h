@@ -23,16 +23,16 @@ class SiftExtractor {
 public:
 	static vector<KeyPoint> ExtractKeyPoints(Mat img);
 	static Mat ExtractDescriptors(Mat img, vector<KeyPoint> keypoints);
-
+	static Ptr<SiftDescriptorExtractor> create();
 };
 
 class BagOfWords {
 public:
-	static Mat create(Mat features);
+	static BOWKMeansTrainer create(Mat descriptors, int dict_size);
 	static void saveToFile(Mat dictionary, String fileName);
 };
 
 class Matcher {
 public:
-
+	static Ptr<DescriptorMatcher> create();
 };

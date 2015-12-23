@@ -1,4 +1,4 @@
-#define DICTIONARY_BUILD 2 // set DICTIONARY_BUILD to 1 for Step 1. 0 for step 2
+ #define DICTIONARY_BUILD 2 // set DICTIONARY_BUILD to 1 for Step 1. 0 for step 2
 
 #include <vector>
 #include "opencv2/core.hpp"
@@ -6,8 +6,7 @@
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/highgui.hpp"
 
-#if DICTIONARY_BUILD == 1
-
+/*
 //Step 1 - Obtain the set of bags of features.
 
 //to store the input file names
@@ -60,7 +59,6 @@ FileStorage fs("dictionary.yml", FileStorage::WRITE);
 fs << "vocabulary" << dictionary;
 fs.release();
 
-#else
 //Step 2 - Obtain the BoF descriptor for given image/video frame. 
 
 //prepare BOW descriptor extractor from the dictionary    
@@ -109,5 +107,5 @@ fs1 << imageTag << bowDescriptor;
 //You may use this descriptor for classifying the image.
 
 //release the file storage
-fs1.release();
-#endif   
+fs1.release()
+  */
