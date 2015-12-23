@@ -4,12 +4,26 @@
 #include <opencv2/ml.hpp>
 #include "opencv2/opencv.hpp"
 #include "Detector.h"
+#include <vector>
+#include <direct.h>
+#define GetCurrentDir _getcwd
+
+String getCurrentPath() {
+	char cCurrentPath[FILENAME_MAX];
+
+	if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))){
+		return "";
+	}
+
+	cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+	return cCurrentPath;
+}
 
 using namespace cv::ml;
 
 int main(int argc, const char *argv[]) {
 
-	string dataset_dir = "./imgs/train/"; // argv[1];
+	string dataset_dir = getCurrentPath() + "\\train\\"; // argv[1];
 	Mat training_descriptors;
 
 	cout << "#### Building Vocabulary" << endl;
@@ -17,10 +31,15 @@ int main(int argc, const char *argv[]) {
 	// read, detect and extract all features and descriptors from the set
 	String animal = "cat";
 	int animalCount = 12500;
+	vector<vector<Mat>> animalImgs(2, vector<Mat>());
+	
 	for (int a = 0; a < 2; a++) {
+		int counter = 0;
 		cout << "\tProcessing " << animal << "s..." << endl;
-		for (int i = 0; i < animalCount; i += 50) {
-			Mat img = imread(String(dataset_dir + animal + "." + i + ".jpg"), IMREAD_GRAYSCALE);
+		for (int i = 0; i < animalCount; i += 1250) {
+
+			Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
+			animalImgs[a].push_back(img);
 			vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 			Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
@@ -38,7 +57,7 @@ int main(int argc, const char *argv[]) {
 
 	cout << "#### Creating Bag of Words" << endl;
 	// Create bag of words
-	BOWKMeansTrainer bowTrainer = BagOfWords::create(training_descriptors, 1000);
+	BOWKMeansTrainer bowTrainer = BagOfWords::create(training_descriptors, 200);
 	//cluster the feature vectors
 	Mat dictionary = bowTrainer.cluster(training_descriptors);
 	BagOfWords::saveToFile(dictionary, "dictionary_bow.yml");
@@ -55,13 +74,18 @@ int main(int argc, const char *argv[]) {
 	animal = "cat";
 	for (int a = 0; a < 2; a++) {
 		cout << "\tProcessing " << animal << "s..." << endl;
-		for (int i = 0; i < animalCount; i += 50) {
-			Mat img = imread(String(dataset_dir + animal + "." + i + ".jpg"), IMREAD_GRAYSCALE);
-			vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
-			Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
+		int counter = 0;
+		for (int i = 0; i < animalCount; i += 1250) {
+			
+			cout << String(dataset_dir + animal + "." + to_string(i) + ".jpg") << "\n";
 
-			bowide.compute(img, keypoints, response_hist);
+			Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 
+			vector<KeyPoint> keypoints2 = SiftExtractor::ExtractKeyPoints(img);
+			Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints2);
+
+			bowide.compute(descriptors, response_hist);
+			
 			if (classes_training_data.count(animal) == 0) { //not yet created...
 				classes_training_data[animal].create(0, response_hist.cols, response_hist.type());
 			}
@@ -81,6 +105,7 @@ int main(int argc, const char *argv[]) {
 		cout << "\tTraining Class: " << class_ << ".." << endl;
 
 		Mat samples(0, response_hist.cols, response_hist.type());
+		
 		Mat labels(0, 1, CV_32FC1);
 
 		//copy class samples and label
@@ -104,8 +129,8 @@ int main(int argc, const char *argv[]) {
 
 	cout << "#### Testing !" << endl;
 	String test_set_dir = "./test1/";
-	for (int i = 1; i < animalCount; i += 250) {
-		Mat img = imread(String(test_set_dir + i + ".jpg"), IMREAD_GRAYSCALE);
+	for (int i = 1; i < animalCount; i += 50) {
+		Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 		vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 		Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
