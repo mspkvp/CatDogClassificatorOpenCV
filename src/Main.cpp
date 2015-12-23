@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	for (int a = 0; a < 2; a++) {
 		int counter = 0;
 		cout << "\tProcessing " << animal << "s..." << endl;
-		for (int i = 0; i < animalCount; i += 1250) {
+		for (int i = 0; i < animalCount; i += 250) {
 
 			Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 			animalImgs[a].push_back(img);
@@ -75,9 +75,9 @@ int main(int argc, const char *argv[]) {
 	for (int a = 0; a < 2; a++) {
 		cout << "\tProcessing " << animal << "s..." << endl;
 		int counter = 0;
-		for (int i = 0; i < animalCount; i += 1250) {
+		for (int i = 0; i < animalCount; i += 250) {
 			
-			cout << String(dataset_dir + animal + "." + to_string(i) + ".jpg") << "\n";
+			//cout << String(dataset_dir + animal + "." + to_string(i) + ".jpg") << "\n";
 
 			Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 
@@ -96,21 +96,23 @@ int main(int argc, const char *argv[]) {
 		animal = "dog";
 	}
 	Ptr<ml::SVM> svm = ml::SVM::create();
+	svm->setType(ml::SVM::C_SVC);
+	svm->setKernel(ml::SVM::LINEAR);
 
 	cout << "#### SVM 1vsAll Training" << endl;
 	//train 1-vs-all SVMs
 	map<string, Ptr<ml::SVM>> classes_classifiers;
 	for (map<string, Mat>::iterator it = classes_training_data.begin(); it != classes_training_data.end(); ++it) {
 		string class_ = (*it).first;
-		cout << "\tTraining Class: " << class_ << ".." << endl;
+		cout << "\tTraining Class: " << class_ << endl;
 
 		Mat samples(0, response_hist.cols, response_hist.type());
 		
-		Mat labels(0, 1, CV_32FC1);
+		Mat labels(0, 1, CV_32S);
 
 		//copy class samples and label
 		samples.push_back(classes_training_data[class_]);
-		Mat class_label = Mat::ones(classes_training_data[class_].rows, 1, CV_32FC1);
+		Mat class_label = Mat::ones(classes_training_data[class_].rows, 1, CV_32S);
 		labels.push_back(class_label);
 
 		//copy rest samples and label
@@ -118,7 +120,7 @@ int main(int argc, const char *argv[]) {
 			string not_class_ = (*it1).first;
 			if (not_class_[0] == class_[0]) continue;
 			samples.push_back(classes_training_data[not_class_]);
-			class_label = Mat::zeros(classes_training_data[not_class_].rows, 1, CV_32FC1);
+			class_label = Mat::zeros(classes_training_data[not_class_].rows, 1, CV_32S);
 			labels.push_back(class_label);
 		}
 
@@ -130,11 +132,12 @@ int main(int argc, const char *argv[]) {
 	cout << "#### Testing !" << endl;
 	String test_set_dir = "./test1/";
 	for (int i = 1; i < animalCount; i += 50) {
+		cout << animal + "." + to_string(i) + ".jpg" << endl;
 		Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 		vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 		Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
-		bowide.compute(img, keypoints, response_hist);
+		bowide.compute(descriptors, response_hist);
 
 		for (map<string, Ptr<ml::SVM>>::iterator it = classes_classifiers.begin(); it != classes_classifiers.end(); ++it) {
 			float res = (*it).second->predict(response_hist);
