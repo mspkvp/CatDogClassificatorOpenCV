@@ -15,7 +15,7 @@ String getCurrentPath() {
 		return "";
 	}
 
-	cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+	cCurrentPath[sizeof(cCurrentPath) - 1] = '\0';
 	return cCurrentPath;
 }
 
@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	for (int a = 0; a < 2; a++) {
 		int counter = 0;
 		cout << "\tProcessing " << animal << "s..." << endl;
-		for (int i = 0; i < animalCount; i += 250) {
+		for (int i = 0; i < animalCount; i += 100) {
 
 			Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 			animalImgs[a].push_back(img);
@@ -44,7 +44,7 @@ int main(int argc, const char *argv[]) {
 			Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
 			training_descriptors.push_back(descriptors);
-			cout << "\t\tProcessed " << i << "/" << animalCount << "\n";
+			cout << "\r\t\tProcessed " << i << "/" << animalCount << "\n";
 		}
 		animal = "dog";
 	}
@@ -57,8 +57,8 @@ int main(int argc, const char *argv[]) {
 
 	cout << "#### Creating Bag of Words" << endl;
 	// Create bag of words
-	BOWKMeansTrainer bowTrainer = BagOfWords::create(training_descriptors, 200);
-	//cluster the feature vectors
+	BOWKMeansTrainer bowTrainer = BagOfWords::create(training_descriptors, 500);
+	// Cluster the feature vectors and save to a file
 	Mat dictionary = bowTrainer.cluster(training_descriptors);
 	BagOfWords::saveToFile(dictionary, "dictionary_bow.yml");
 	
@@ -75,7 +75,7 @@ int main(int argc, const char *argv[]) {
 	for (int a = 0; a < 2; a++) {
 		cout << "\tProcessing " << animal << "s..." << endl;
 		int counter = 0;
-		for (int i = 0; i < animalCount; i += 250) {
+		for (int i = 0; i < animalCount; i += 100) {
 			
 			//cout << String(dataset_dir + animal + "." + to_string(i) + ".jpg") << "\n";
 
@@ -91,7 +91,7 @@ int main(int argc, const char *argv[]) {
 			}
 			classes_training_data[animal].push_back(response_hist);
 
-			cout << "\t\tProcessed " << i << "/" << animalCount << "\n";
+			cout << "\r\t\tProcessed " << i << "/" << animalCount << "\n";
 		}
 		animal = "dog";
 	}
@@ -99,8 +99,8 @@ int main(int argc, const char *argv[]) {
 	svm->setType(ml::SVM::C_SVC);
 	svm->setKernel(ml::SVM::LINEAR);
 
-	cout << "#### SVM 1vsAll Training" << endl;
-	//train 1-vs-all SVMs
+	cout << "#### SVM 1 vs All Training" << endl;
+
 	map<string, Ptr<ml::SVM>> classes_classifiers;
 	for (map<string, Mat>::iterator it = classes_training_data.begin(); it != classes_training_data.end(); ++it) {
 		string class_ = (*it).first;
@@ -110,12 +110,10 @@ int main(int argc, const char *argv[]) {
 		
 		Mat labels(0, 1, CV_32S);
 
-		//copy class samples and label
 		samples.push_back(classes_training_data[class_]);
 		Mat class_label = Mat::ones(classes_training_data[class_].rows, 1, CV_32S);
 		labels.push_back(class_label);
 
-		//copy rest samples and label
 		for (map<string, Mat>::iterator it1 = classes_training_data.begin(); it1 != classes_training_data.end(); ++it1) {
 			string not_class_ = (*it1).first;
 			if (not_class_[0] == class_[0]) continue;
@@ -131,10 +129,10 @@ int main(int argc, const char *argv[]) {
 
 	cout << "#### Testing !" << endl;
 	int positive_hits = 0, false_positives = 0, total = 0;
-	String test_set_dir = "./test1/";
-	for (int i = 1; i < animalCount; i += 250) {
-		cout << "\t" << animal + "." + to_string(i) + ".jpg" << endl;
-		Mat img = imread(String(dataset_dir + animal + "." + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
+	String test_set_dir = getCurrentPath() + "\\test1\\";
+	for (int i = 1; i < 100; i += 1) {
+		cout << "\t" << to_string(i) + ".jpg ";
+		Mat img = imread(String(test_set_dir + to_string(i) + ".jpg"), IMREAD_GRAYSCALE);
 		vector<KeyPoint> keypoints = SiftExtractor::ExtractKeyPoints(img);
 		Mat descriptors = SiftExtractor::ExtractDescriptors(img, keypoints);
 
@@ -142,20 +140,20 @@ int main(int argc, const char *argv[]) {
 
 		for (map<string, Ptr<ml::SVM>>::iterator it = classes_classifiers.begin(); it != classes_classifiers.end(); ++it) {
 			float res = (*it).second->predict(response_hist);
-			cout << "\t\tclass: " << (*it).first << ", response: " << res << endl;
-			if ((*it).first == animal && res > 0)
+			if (res > 0) cout << "\tclass: " << (*it).first << endl;// << ", response: " << res << endl;
+			/*if ((*it).first == animal && res > 0)
 				positive_hits++;
 			else if ((*it).first != animal && res > 0)
-				false_positives++;
+				false_positives++;*/
 		}
 		total++;
 
 		cout << "\tProcessed " << i << "/" << animalCount << "\n";
 	}
 
-	cout << "### Stats:\n" << "\tPositive Hits: " << positive_hits << " -> " << positive_hits / total << endl
+	/*cout << "### Stats:\n" << "\tPositive Hits: " << positive_hits << " -> " << positive_hits / total << endl
 		<< "\t False-Pos Hits: " << false_positives << " -> " << false_positives / total << endl
-		<< "\t Total Tests: " << total << endl;
+		<< "\t Total Tests: " << total << endl;*/
 
 	system("PAUSE");
 	return 0;

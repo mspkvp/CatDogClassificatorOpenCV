@@ -42,7 +42,7 @@ Ptr<SiftDescriptorExtractor> SiftExtractor::create()
 
 BOWKMeansTrainer BagOfWords::create(Mat descriptors, int dict_size) {
 	int dictionarySize = dict_size; // the number of bags
-	TermCriteria tc(CV_TERMCRIT_ITER, 5000, 0.001); // define Term Criteria
+	TermCriteria tc(CV_TERMCRIT_ITER, 5000, 0.00001); // define Term Criteria
 	int retries = 1; // retries number
 	int flags = KMEANS_PP_CENTERS; // necessary flags
 
